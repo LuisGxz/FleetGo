@@ -1,0 +1,17 @@
+name: Keep API warm
+
+# F1 unloads the container after ~20 min idle (cold start ≈30 s). Pinging /health keeps the
+# app loaded. Deliberately NOT touching the database: the serverless free tier must auto-pause
+# or its monthly vCore quota burns out — the login flow retries through the DB resume instead.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: curl -sf --max-time 120 https://fleetgo-api-luisgxz.azurewebsites.net/health
