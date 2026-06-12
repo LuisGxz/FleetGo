@@ -1,0 +1,68 @@
+/* FleetGo design tokens — from docs/portfolio-designs/04-fleetgo.html.
+   Night-ops palette: orange #F97316 over deep navy #0C1320. Always dark. */
+
+:root {
+  /* deep navy scale */
+  --deep-950: #0c1320;
+  --deep-900: #111b2e;
+  --deep-800: #182539;
+  --deep-700: #22324b;
+  --deep-600: #31425e;
+  --deep-300: #7e92b0;
+  --deep-200: #a9b8ce;
+  --deep-100: #d4ddea;
+
+  /* fleet orange */
+  --fleet-500: #f97316;
+  --fleet-600: #ea580c;
+  --fleet-400: #fb923c;
+  --fleet-100: #ffedd5;
+
+  /* ok green */
+  --ok-500: #22c55e;
+  --ok-100: #dcfce7;
+
+  --font-body: 'Archivo', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Ionic mapping */
+  --ion-background-color: var(--deep-950);
+  --ion-background-color-rgb: 12, 19, 32;
+  --ion-text-color: var(--deep-100);
+  --ion-text-color-rgb: 212, 221, 234;
+  --ion-font-family: var(--font-body);
+
+  --ion-color-primary: #f97316;
+  --ion-color-primary-rgb: 249, 115, 22;
+  --ion-color-primary-contrast: #0c1320;
+  --ion-color-primary-contrast-rgb: 12, 19, 32;
+  --ion-color-primary-shade: #ea580c;
+  --ion-color-primary-tint: #fb923c;
+
+  --ion-color-success: #22c55e;
+  --ion-color-success-rgb: 34, 197, 94;
+  --ion-color-success-contrast: #0c1320;
+  --ion-color-success-contrast-rgb: 12, 19, 32;
+  --ion-color-success-shade: #16a34a;
+  --ion-color-success-tint: #4ade80;
+
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #dc2626;
+  --ion-color-danger-tint: #f87171;
+
+  --ion-color-medium: #7e92b0;
+  --ion-color-medium-rgb: 126, 146, 176;
+  --ion-color-medium-contrast: #0c1320;
+  --ion-color-medium-contrast-rgb: 12, 19, 32;
+  --ion-color-medium-shade: #6f809b;
+  --ion-color-medium-tint: #8b9db8;
+
+  --ion-toolbar-background: rgba(12, 19, 32, 0.92);
+  --ion-toolbar-color: var(--deep-100);
+  --ion-item-background: var(--deep-800);
+  --ion-card-background: var(--deep-800);
+  --ion-border-color: var(--deep-700);
+}

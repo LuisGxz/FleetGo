@@ -1,0 +1,48 @@
+<ion-content>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <span class="logo"><ion-icon name="bus-outline" /></span>
+        <span class="name">FleetGo</span>
+      </div>
+      <app-lang-pill />
+    </header>
+
+    <h1>{{ lang.t().about.title }}</h1>
+    <p class="subtitle">{{ lang.t().about.subtitle }}</p>
+
+    <p class="body">{{ lang.t().about.body1 }}</p>
+    <p class="body">{{ lang.t().about.body2 }}</p>
+
+    <h2 class="mono">{{ lang.t().about.stackTitle }}</h2>
+    <div class="chips">
+      @for (item of stack; track item) {
+        <span class="chip mono">{{ item }}</span>
+      }
+    </div>
+
+    <h2 class="mono">{{ lang.t().about.featuresTitle }}</h2>
+    <ul>
+      @for (f of lang.t().about.features; track f) {
+        <li>{{ f }}</li>
+      }
+    </ul>
+
+    <h2 class="mono">{{ lang.t().about.demoTitle }}</h2>
+    <div class="demo">
+      <p class="mono">courier&#64;fleetgo.dev · dispatch&#64;fleetgo.dev</p>
+      <p class="hint">{{ lang.t().about.demoBody }}</p>
+    </div>
+
+    <div class="links">
+      <a href="https://github.com/Luisgxz/FleetGo" target="_blank" rel="noopener">
+        <ion-icon name="logo-github" /> {{ lang.t().about.sourceLink }}
+      </a>
+      <a href="https://luisgxz.github.io/" target="_blank" rel="noopener">
+        <ion-icon name="open-outline" /> {{ lang.t().about.portfolioLink }}
+      </a>
+    </div>
+
+    <a routerLink="/login" class="back-link">{{ lang.t().about.backToLogin }}</a>
+  </div>
+</ion-content>

@@ -1,0 +1,153 @@
+.wrap {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 16px 18px 32px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+
+  h1 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--fleet-500);
+  color: var(--deep-950);
+  font-weight: 700;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--deep-800);
+  border: 1px solid var(--deep-700);
+  color: var(--deep-200);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  ion-icon { font-size: 20px; }
+}
+
+.route-line {
+  font-size: 12px;
+  color: var(--deep-300);
+  margin: 4px 0 12px;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--deep-700);
+  overflow: hidden;
+  margin-bottom: 20px;
+
+  .bar {
+    height: 100%;
+    background: var(--fleet-500);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+}
+
+.stops {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stop {
+  text-align: left;
+  width: 100%;
+  border-radius: 18px;
+  background: var(--deep-800);
+  border: 1px solid var(--deep-700);
+  padding: 14px 16px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+
+  &.next {
+    background: rgba(249, 115, 22, 0.1);
+    border-color: var(--fleet-500);
+  }
+
+  &.done { opacity: 0.55; }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+
+    .code {
+      font-size: 11px;
+      color: var(--deep-300);
+      &.accent { color: var(--fleet-400); }
+    }
+
+    .up-next {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--fleet-400);
+    }
+
+    .eta { font-size: 11px; color: var(--deep-300); }
+    ion-icon { font-size: 18px; }
+    .ok { color: var(--ok-500); }
+    .fail { color: var(--ion-color-danger); }
+  }
+
+  .name {
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    &.struck { color: var(--deep-200); text-decoration: line-through; }
+  }
+
+  .addr {
+    font-size: 12px;
+    color: var(--deep-300);
+    margin: 2px 0 0;
+  }
+
+  .cta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+
+    .eta { font-size: 12px; color: var(--deep-200); strong { color: #fff; } }
+
+    .open-cta {
+      border-radius: 12px;
+      background: var(--fleet-500);
+      color: var(--deep-950);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 10px 16px;
+    }
+  }
+}

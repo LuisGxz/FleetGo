@@ -1,0 +1,71 @@
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($any($event))">
+    <ion-refresher-content />
+  </ion-refresher>
+
+  <div class="wrap">
+    <header>
+      <h1>{{ lang.t().driver.todayTitle }}</h1>
+      <div class="header-actions">
+        <app-lang-pill />
+        <div class="avatar" [title]="auth.user()?.fullName">{{ initials() }}</div>
+        <button type="button" class="icon-btn" (click)="auth.logout()" [attr.aria-label]="lang.t().common.signOut">
+          <ion-icon name="log-out-outline" />
+        </button>
+      </div>
+    </header>
+
+    @if (loading()) {
+      <div class="empty-state"><ion-spinner name="crescent" /><p>{{ lang.t().common.loading }}</p></div>
+    } @else if (error()) {
+      <div class="empty-state">
+        <p>{{ lang.t().common.error }}</p>
+        <ion-button fill="outline" size="small" (click)="load()">{{ lang.t().common.retry }}</ion-button>
+      </div>
+    } @else if (!route()) {
+      <div class="empty-state">
+        <ion-icon name="cube-outline" />
+        <p><strong>{{ lang.t().driver.noRoute }}</strong></p>
+        <p>{{ lang.t().driver.noRouteHint }}</p>
+      </div>
+    } @else {
+      @if (route(); as r) {
+        <p class="route-line num mono">
+          {{ r.routeCode }} · {{ r.completed }} {{ lang.t().driver.routeOf }} {{ r.total }} {{ lang.t().driver.completedSuffix }}
+        </p>
+        <div class="progress"><div class="bar" [style.width.%]="progressPct()"></div></div>
+
+        <div class="stops">
+          @for (d of r.deliveries; track d.id) {
+            @let done = d.status !== 'Pending';
+            @let next = d.id === nextId();
+            <button type="button" class="stop" [class.next]="next" [class.done]="done" (click)="open(d)">
+              <div class="row">
+                <span class="code mono num" [class.accent]="next">#{{ d.packageCode }}</span>
+                @if (next) {
+                  <span class="up-next">{{ lang.t().driver.upNext }}</span>
+                } @else if (d.status === 'Delivered') {
+                  <ion-icon name="checkmark-circle" class="ok" />
+                } @else if (d.status === 'Failed') {
+                  <ion-icon name="close-circle" class="fail" />
+                } @else if (d.windowEndUtc) {
+                  <span class="eta num">{{ lang.t().driver.eta }} {{ d.windowEndUtc + 'Z' | date:'HH:mm' }}</span>
+                }
+              </div>
+              <p class="name" [class.struck]="d.status === 'Delivered'">{{ d.customerName }}</p>
+              <p class="addr">{{ d.address }}</p>
+              @if (next) {
+                <div class="cta-row">
+                  @if (d.windowEndUtc) {
+                    <span class="eta num">{{ lang.t().driver.eta }} <strong>{{ d.windowEndUtc + 'Z' | date:'HH:mm' }}</strong></span>
+                  } @else { <span></span> }
+                  <span class="open-cta">{{ lang.t().driver.open }}</span>
+                </div>
+              }
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

@@ -9,6 +9,8 @@ node_modules/
 dist/
 .angular/
 www/
+test-results/
+playwright-report/
 
 # Local secrets / env
 *.local

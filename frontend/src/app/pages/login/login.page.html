@@ -1,0 +1,54 @@
+<ion-content>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <span class="logo"><ion-icon name="bus-outline" /></span>
+        <span class="name">FleetGo</span>
+      </div>
+      <app-lang-pill />
+    </header>
+
+    <main>
+      <h1>{{ lang.t().login.tagline }}</h1>
+
+      <form (ngSubmit)="submit()">
+        <ion-input
+          name="email" type="email" inputmode="email" autocomplete="email"
+          [label]="lang.t().login.email" labelPlacement="stacked" fill="outline"
+          [(ngModel)]="email" required />
+        <ion-input
+          name="password" type="password" autocomplete="current-password"
+          [label]="lang.t().login.password" labelPlacement="stacked" fill="outline"
+          [(ngModel)]="password" required />
+
+        @if (errors().length) {
+          <div class="api-errors">
+            @for (msg of errors(); track msg) { <p>{{ msg }}</p> }
+          </div>
+        }
+        @if (slow()) {
+          <p class="cold-start">{{ lang.t().login.coldStart }}</p>
+        }
+
+        <ion-button expand="block" type="submit" [disabled]="busy() || !email || !password">
+          @if (busy()) { <ion-spinner name="crescent" /> {{ lang.t().login.signingIn }} }
+          @else { {{ lang.t().login.signIn }} }
+        </ion-button>
+      </form>
+
+      <section class="demo">
+        <p class="label mono">{{ lang.t().login.demoLabel }}</p>
+        <button type="button" (click)="fill('courier@fleetgo.dev')">
+          <span class="mono">courier&#64;fleetgo.dev</span>
+          <span class="hint">{{ lang.t().login.demoCourier }}</span>
+        </button>
+        <button type="button" (click)="fill('dispatch@fleetgo.dev')">
+          <span class="mono">dispatch&#64;fleetgo.dev</span>
+          <span class="hint">{{ lang.t().login.demoDispatch }}</span>
+        </button>
+      </section>
+
+      <a routerLink="/about" class="about-link">{{ lang.t().login.aboutLink }}</a>
+    </main>
+  </div>
+</ion-content>

@@ -1,0 +1,132 @@
+<ion-content>
+  <div class="panel">
+    <header>
+      <div class="left">
+        <span class="brand"><ion-icon name="bus-outline" /></span>
+        <span class="title">{{ lang.t().dispatch.title }}</span>
+        @if (summary(); as s) {
+          <span class="live num"><span class="dot"></span>{{ s.unitsActive }} {{ lang.t().dispatch.unitsActive }}</span>
+        }
+      </div>
+      <div class="right num">
+        @if (summary(); as s) {
+          <span class="kpi">{{ lang.t().dispatch.deliveredToday }} <strong>{{ s.deliveredToday }}</strong></span>
+          <span class="kpi">{{ lang.t().dispatch.onTime }} <strong class="ok">{{ s.onTimePct | number:'1.1-1' }}%</strong></span>
+          <span class="kpi">{{ lang.t().dispatch.delays }} <strong class="warn">{{ s.delays }}</strong></span>
+        }
+        <app-lang-pill />
+        <button type="button" class="icon-btn" (click)="auth.logout()" [attr.aria-label]="lang.t().common.signOut">
+          <ion-icon name="log-out-outline" />
+        </button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <aside>
+        <div class="tabs">
+          <button type="button" [class.on]="tab() === 'Active'" (click)="tab.set('Active')">
+            {{ lang.t().dispatch.tabActive }} ({{ counts().Active }})
+          </button>
+          <button type="button" [class.on]="tab() === 'Planned'" (click)="tab.set('Planned')">
+            {{ lang.t().dispatch.tabQueued }} ({{ counts().Planned }})
+          </button>
+          <button type="button" [class.on]="tab() === 'Completed'" (click)="tab.set('Completed')">
+            {{ lang.t().dispatch.tabClosed }}
+          </button>
+        </div>
+
+        @if (loading()) {
+          <div class="empty-state"><ion-spinner name="crescent" /></div>
+        } @else if (error()) {
+          <div class="empty-state">
+            <p>{{ lang.t().common.error }}</p>
+            <ion-button fill="outline" size="small" (click)="load()">{{ lang.t().common.retry }}</ion-button>
+          </div>
+        } @else if (!visibleUnits().length) {
+          <div class="empty-state"><p>{{ lang.t().dispatch.noUnits }}</p></div>
+        } @else {
+          <div class="unit-list">
+            @for (u of visibleUnits(); track u.unitCode) {
+              <button type="button" class="unit" [class.hot]="selected() === u.unitCode"
+                      (click)="select(u)" (dblclick)="openDetail(u)">
+                <div class="row">
+                  <span class="mono code" [class.accent]="selected() === u.unitCode">{{ u.unitCode }} · {{ u.courierName }}</span>
+                  @if (u.etaUtc) {
+                    <span class="eta num">ETA {{ u.etaUtc + 'Z' | date:'HH:mm' }}</span>
+                  } @else {
+                    <span class="eta num">{{ statusTag(u.status) }}</span>
+                  }
+                </div>
+                <div class="row2">
+                  <div class="bar"><div [style.width.%]="progressPct(u)"></div></div>
+                  <span class="stops num">{{ u.stopsRemaining }} {{ lang.t().dispatch.stops }}</span>
+                </div>
+                <span class="detail-link" (click)="$event.stopPropagation(); openDetail(u)">{{ lang.t().dispatch.routeDetail }} →</span>
+              </button>
+            }
+          </div>
+        }
+      </aside>
+
+      <div class="map-host">
+        <div #map class="map"></div>
+      </div>
+    </div>
+  </div>
+
+  <ion-modal [isOpen]="detailOpen()" (didDismiss)="closeDetail()" class="detail-modal">
+    <ng-template>
+      <div class="detail">
+        <header>
+          @if (detail(); as r) {
+            <div>
+              <p class="mono code">{{ r.routeCode }} · {{ r.unitCode }} · {{ r.courierName }}</p>
+              <h2>{{ lang.t().dispatch.routeDetail }} <span class="num">{{ r.completed }}/{{ r.total }}</span></h2>
+            </div>
+          } @else {
+            <h2>{{ lang.t().common.loading }}</h2>
+          }
+          <button type="button" class="icon-btn" (click)="closeDetail()" [attr.aria-label]="lang.t().common.close">
+            <ion-icon name="close-outline" />
+          </button>
+        </header>
+
+        @if (signatureView(); as png) {
+          <div class="signature-view">
+            <p>{{ lang.t().dispatch.signatureTitle }}</p>
+            <img [src]="png" alt="signature" />
+            <ion-button size="small" fill="outline" (click)="signatureView.set(null)">{{ lang.t().common.back }}</ion-button>
+          </div>
+        } @else if (detail(); as r) {
+          <div class="stops-list">
+            @for (d of r.deliveries; track d.id) {
+              <div class="stop-row">
+                <span class="seq mono num">{{ d.sequence }}</span>
+                <div class="info">
+                  <p class="name">{{ d.customerName }} <span class="mono pkg num">#{{ d.packageCode }}</span></p>
+                  <p class="addr">{{ d.address }}</p>
+                </div>
+                <div class="state">
+                  @if (d.status === 'Delivered') {
+                    <ion-icon name="checkmark-circle" class="ok" />
+                    @if (d.deliveredAtUtc) { <span class="num">{{ d.deliveredAtUtc + 'Z' | date:'HH:mm' }}</span> }
+                    @if (d.signaturePng) {
+                      <button type="button" class="sig-link" (click)="showSignature(d)">{{ lang.t().dispatch.viewSignature }}</button>
+                    }
+                  } @else if (d.status === 'Failed') {
+                    <ion-icon name="close-circle" class="fail" />
+                    <span>{{ lang.failReason(d.failReason ?? '') }}</span>
+                  } @else {
+                    <span class="pending">{{ lang.status('Pending') }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state"><ion-spinner name="crescent" /></div>
+        }
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

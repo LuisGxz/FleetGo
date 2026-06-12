@@ -1,0 +1,101 @@
+<ion-content>
+  @if (loading()) {
+    <div class="empty-state"><ion-spinner name="crescent" /><p>{{ lang.t().common.loading }}</p></div>
+  } @else if (!delivery()) {
+    <div class="empty-state">
+      <p>{{ lang.t().common.error }}</p>
+      <ion-button fill="outline" size="small" (click)="back()">{{ lang.t().common.back }}</ion-button>
+    </div>
+  } @else {
+    @if (delivery(); as d) {
+      <div class="map-area">
+        <div #map class="map"></div>
+        <button type="button" class="back-btn" (click)="back()" [attr.aria-label]="lang.t().common.back">
+          <ion-icon name="arrow-back" />
+        </button>
+        @if (distanceEta()) {
+          <span class="dist mono num">{{ distanceEta() }}</span>
+        }
+      </div>
+
+      <div class="body">
+        <p class="code mono num">#{{ d.packageCode }}</p>
+        <h1>{{ d.customerName }}</h1>
+        <p class="addr">{{ d.address }}</p>
+
+        <div class="chips">
+          <span class="chip"><ion-icon name="cube-outline" /> {{ d.parcels }} {{ lang.t().driver.parcels }}</span>
+          @if (d.windowEndUtc) {
+            <span class="chip"><ion-icon name="time-outline" /> {{ lang.t().driver.byTime }} {{ d.windowEndUtc + 'Z' | date:'HH:mm' }}</span>
+          }
+          @if (d.signatureRequired) {
+            <span class="chip accent">{{ lang.t().driver.signatureReq }}</span>
+          }
+        </div>
+
+        @if (errors().length) {
+          <div class="api-errors">
+            @for (msg of errors(); track msg) { <p>{{ msg }}</p> }
+          </div>
+        }
+
+        @if (isPending()) {
+          @if (d.signatureRequired) {
+            <div class="sig-block">
+              <app-signature-pad [hint]="lang.t().driver.signatureHint" />
+              <button type="button" class="clear-btn" (click)="pad?.clear()">{{ lang.t().driver.clear }}</button>
+            </div>
+          }
+
+          <ion-button expand="block" class="deliver-btn" (click)="deliver()" [disabled]="busy()">
+            @if (busy()) { <ion-spinner name="crescent" /> {{ lang.t().driver.delivering }} }
+            @else { <ion-icon name="checkmark-circle-outline" slot="start" /> {{ lang.t().driver.markDelivered }} }
+          </ion-button>
+          <ion-button expand="block" fill="outline" class="issue-btn" (click)="issueOpen.set(true)" [disabled]="busy()">
+            {{ lang.t().driver.reportIssue }}
+          </ion-button>
+        } @else {
+          <div class="closed" [class.failed]="d.status === 'Failed'">
+            @if (d.status === 'Delivered') {
+              <p class="tag ok">
+                <ion-icon name="checkmark-circle-outline" />
+                {{ lang.t().driver.deliveredAt }} {{ (d.deliveredAtUtc ?? '') + 'Z' | date:'HH:mm' }}
+              </p>
+            } @else {
+              <p class="tag fail">
+                <ion-icon name="warning-outline" />
+                {{ lang.t().driver.failedTag }} — {{ lang.failReason(d.failReason ?? '') }}
+              </p>
+              @if (d.failNote) { <p class="note">{{ d.failNote }}</p> }
+            }
+            <p class="immutable">{{ lang.t().driver.immutableNote }}</p>
+          </div>
+        }
+      </div>
+
+      <ion-modal [isOpen]="issueOpen()" (didDismiss)="issueOpen.set(false)" [initialBreakpoint]="1" [breakpoints]="[0, 1]" class="issue-modal">
+        <ng-template>
+          <div class="issue-sheet">
+            <h2>{{ lang.t().driver.issueTitle }}</h2>
+            <p class="label">{{ lang.t().driver.issueReason }}</p>
+            <div class="reasons">
+              @for (r of failReasons; track r) {
+                <button type="button" [class.selected]="issueReason() === r" (click)="issueReason.set(r)">
+                  {{ lang.failReason(r) }}
+                </button>
+              }
+            </div>
+            <ion-textarea
+              [label]="lang.t().driver.issueNote" labelPlacement="stacked" fill="outline"
+              [placeholder]="lang.t().driver.issueNotePlaceholder" [autoGrow]="true"
+              [(ngModel)]="issueNote" name="issueNote" />
+            <ion-button expand="block" color="danger" (click)="submitIssue()" [disabled]="busy()">
+              @if (busy()) { {{ lang.t().driver.submittingIssue }} } @else { {{ lang.t().driver.submitIssue }} }
+            </ion-button>
+            <ion-button expand="block" fill="clear" (click)="issueOpen.set(false)">{{ lang.t().common.cancel }}</ion-button>
+          </div>
+        </ng-template>
+      </ion-modal>
+    }
+  }
+</ion-content>
