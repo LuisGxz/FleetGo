@@ -46,6 +46,14 @@
 - 2026-06-12 · F1–F4 ✅. Backend completo: build verde, 20/20 tests, smoke E2E OK (login ambos roles, /routes/today courier, /dispatch/summary+units, simulador moviendo flota). Rutas API bajo `api/v1/`. Commit inicial.
 - 2026-06-12 · F5–F6 ✅. App Ionic 8 + Angular 20 standalone completa: tema dark del mockup, core portado de MediTrack (auth/i18n/api-error/guards), driver (lista con progreso, detalle con mini-mapa Leaflet + firma canvas propia + deliver/fail), dispatch (KPIs, tabs Activos/En cola/Cerrados, mapa Leaflet vivo por SignalR, detalle de ruta con firmas), /about bilingüe. E2E Playwright 5/5 (entrega con firma → dispatch lo ve en vivo, RBAC ambos sentidos, i18n, F5-reload, 0 pageerrors). Trampas: quitar `@angular/animations` (ya no se publica en paridad con Angular 20.3); tsconfig `lib: es2022` (starter trae es2018); `allowedCommonJsDependencies: [leaflet]`.
 
+## Post-entrega — pase de calidad (2026-06-12, feedback del usuario)
+- **Login fallaba en frío con mensaje engañoso** ("revisa tus credenciales" ante errores de infraestructura). Fix: retry de cold start ampliado (9×8 s ≈ 70 s), mensajes propios bilingües para infra (status 0/5xx/408) y 429; `keep-warm.yml` cada 15 min al App Service (la SQL serverless DEBE seguir pausándose o quema la cuota mensual). Backend: `UseForwardedHeaders` para que el rate limit particione por IP real del cliente, no por el gateway compartido.
+- **Bug NG02100**: la API mezcla DateTime kinds — `EtaUtc` (computado) serializa CON `Z`, los leídos de BD SIN ella; concatenar `+ 'Z'` a ciegas generaba fechas inválidas. Fix: helper `core/dates.ts#utc()` en todos los templates.
+- **/about reescrita a paridad FinPulse** (era 2 párrafos + lista): lead, chips, botones, credenciales, Alcance, Arquitectura con diagrama, tabla de patrones, Auth/seguridad, Integridad de datos, Tiempo real, Performance, Testing, Trade-offs, link a TECHNICAL. Bilingüe, copy autocontenido en el componente (patrón FinPulse).
+- **E2E endurecido**: cualquier `console.error` falla el test (antes solo `pageerror` — así se escapó el NG02100). SignalR a `LogLevel.None` (los fallos ya los maneja el reconnect propio; los negotiate abortados por unload ensuciaban la consola). Favicon.ico añadido. 5/5 verde, verificado en PROD.
+- Estándar nuevo en el doc maestro: **"Quality gate de entrega — FinPulse es la vara"** (estructura exacta de /about, console.error = fallo, mensajes de error que no mienten, checklist final).
+- Nota: en Pages, las rutas profundas devuelven el documento con status 404 (fallback SPA) — la app funciona; es la limitación documentada de GitHub Pages.
+
 ## Cómo correr (dev)
 - API: `dotnet run --project backend/FleetGo.Api --urls http://localhost:5200` (migra+seed en Development; simulador ON).
 - App: `npm start` en frontend/ (http://localhost:4200).
