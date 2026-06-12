@@ -63,7 +63,8 @@ export class DeliveryPage implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.loading.set(false);
     }
-    this.renderMap();
+    // The #map div appears on the next change-detection pass — defer until it exists.
+    setTimeout(() => this.renderMap());
   }
 
   ngAfterViewInit(): void {
@@ -105,6 +106,12 @@ export class DeliveryPage implements OnInit, AfterViewInit, OnDestroy {
     map.fitBounds(L.latLngBounds([from.lat, from.lng], [d.lat, d.lng]).pad(0.25));
     this.map = map;
     this.distanceEta.set(distanceEtaLabel(from.lat, from.lng, d.lat, d.lng));
+
+    // ion-content settles its layout after init — re-measure or tiles render in a sliver.
+    setTimeout(() => {
+      map.invalidateSize();
+      map.fitBounds(L.latLngBounds([from.lat, from.lng], [d.lat, d.lng]).pad(0.25));
+    }, 250);
 
     // marker refs kept alive by the map; explicit no-op to appease lint
     void courierDot; void destDot; void line;

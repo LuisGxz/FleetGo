@@ -75,17 +75,25 @@ export class DispatchPage implements OnInit, AfterViewInit, OnDestroy {
     this.refreshTimer = setInterval(() => this.refreshData(), 15_000);
   }
 
+  private resizeObserver: ResizeObserver | null = null;
+
   ngAfterViewInit(): void {
     const map = L.map(this.mapRef.nativeElement, { zoomControl: true });
     L.tileLayer(TILES, { attribution: TILES_ATTR, maxZoom: 19 }).addTo(map);
     map.setView(SEATTLE, 12);
     this.map = map;
     this.syncMarkers();
+
+    // ion-content/grid settle after init — keep Leaflet's measurements in sync.
+    this.resizeObserver = new ResizeObserver(() => map.invalidateSize());
+    this.resizeObserver.observe(this.mapRef.nativeElement);
+    setTimeout(() => map.invalidateSize(), 300);
   }
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
     if (this.refreshTimer) clearInterval(this.refreshTimer);
+    this.resizeObserver?.disconnect();
     this.tracking.disconnect();
     this.map?.remove();
     this.map = null;
