@@ -6,6 +6,7 @@ import { busOutline, checkmarkCircle, closeCircle, closeOutline, logOutOutline }
 import * as L from 'leaflet';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { utc } from '../../core/dates';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { DeliveryDto, DispatchSummaryDto, RouteDto, RouteStatus, UnitStatusDto } from '../../core/models';
@@ -43,6 +44,8 @@ export class DispatchPage implements OnInit, AfterViewInit, OnDestroy {
   readonly detail = signal<RouteDto | null>(null);
   readonly detailOpen = signal(false);
   readonly signatureView = signal<string | null>(null);
+
+  readonly utc = utc;
 
   readonly visibleUnits = computed(() =>
     this.units().filter(u => u.status === this.tab()));
@@ -212,8 +215,9 @@ export class DispatchPage implements OnInit, AfterViewInit, OnDestroy {
 
   private popupHtml(u: UnitStatusDto): string {
     const t = this.lang.t().dispatch;
-    const eta = u.etaUtc
-      ? new Date(u.etaUtc + 'Z').toLocaleTimeString(this.lang.dateLocale(), { hour: '2-digit', minute: '2-digit' })
+    const etaIso = utc(u.etaUtc);
+    const eta = etaIso
+      ? new Date(etaIso).toLocaleTimeString(this.lang.dateLocale(), { hour: '2-digit', minute: '2-digit' })
       : t.never;
     return `
       <div class="unit-popup">

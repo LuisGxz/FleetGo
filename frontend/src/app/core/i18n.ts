@@ -24,7 +24,7 @@ export interface AppCopy {
   login: {
     tagline: string; email: string; password: string; signIn: string; signingIn: string;
     demoLabel: string; demoCourier: string; demoDispatch: string; aboutLink: string;
-    errorFallback: string; coldStart: string;
+    errorFallback: string; coldStart: string; infraError: string; tooManyAttempts: string;
   };
   driver: {
     todayTitle: string; routeOf: string; completedSuffix: string; upNext: string;
@@ -44,12 +44,6 @@ export interface AppCopy {
     viewSignature: string; signatureTitle: string; noSignature: string;
     progress: string; lastPing: string; never: string;
   };
-  about: {
-    title: string; subtitle: string; body1: string; body2: string;
-    stackTitle: string; featuresTitle: string;
-    features: string[]; demoTitle: string; demoBody: string;
-    sourceLink: string; portfolioLink: string; backToLogin: string;
-  };
 }
 
 const en: AppCopy = {
@@ -63,7 +57,9 @@ const en: AppCopy = {
     demoLabel: 'Demo accounts', demoCourier: 'Courier (driver app)', demoDispatch: 'Coordinator (dispatch panel)',
     aboutLink: 'About this project',
     errorFallback: 'Could not sign in. Check your credentials.',
-    coldStart: 'The demo API may take ~1 min to wake up on the first request.'
+    coldStart: 'The demo API may take ~1 min to wake up on the first request.',
+    infraError: 'The demo API is still waking up (free tier). Please try again in a few seconds — your credentials are fine.',
+    tooManyAttempts: 'Too many attempts. Wait a minute and try again.'
   },
   driver: {
     todayTitle: "Today's deliveries", routeOf: 'of', completedSuffix: 'completed',
@@ -92,24 +88,6 @@ const en: AppCopy = {
     viewSignature: 'View signature', signatureTitle: 'Customer signature',
     noSignature: 'No signature captured', progress: 'Progress',
     lastPing: 'Last ping', never: '—'
-  },
-  about: {
-    title: 'About FleetGo',
-    subtitle: 'Last-mile logistics & real-time fleet tracking — portfolio project',
-    body1: 'FleetGo is a demo logistics platform: couriers work their daily route from a mobile app (delivery list, signature capture, incident reporting) while coordinators watch the whole fleet move live on a dispatch map.',
-    body2: 'It is one Ionic app with two role-based experiences sharing auth, i18n and core services. Unit positions flow through SignalR; in this demo a server-side fleet simulator drives the units along their routes so the map is always alive.',
-    stackTitle: 'Stack',
-    featuresTitle: 'What it demonstrates',
-    features: [
-      'Ionic 8 + Angular 20 standalone, one app with driver (mobile) and dispatch (desktop) experiences',
-      '.NET 9 Clean Architecture API with JWT + refresh rotation and strict RBAC (courier sees only their route)',
-      'Real-time tracking: SignalR hub, in-memory position store (Redis-ready seam), fleet simulator',
-      'Domain rules enforced server-side: signature required, immutable closed deliveries, append-only delivery events',
-      'Leaflet dark map, hand-made EN/ES i18n, signature canvas with no extra libraries'
-    ],
-    demoTitle: 'Demo accounts',
-    demoBody: 'Password for both: Demo1234!',
-    sourceLink: 'Source on GitHub', portfolioLink: 'More projects', backToLogin: 'Back to sign in'
   }
 };
 
@@ -124,7 +102,9 @@ const es: AppCopy = {
     demoLabel: 'Cuentas demo', demoCourier: 'Repartidor (app móvil)', demoDispatch: 'Coordinador (panel de despacho)',
     aboutLink: 'Acerca de este proyecto',
     errorFallback: 'No se pudo iniciar sesión. Revisa tus credenciales.',
-    coldStart: 'La API demo puede tardar ~1 min en despertar en la primera petición.'
+    coldStart: 'La API demo puede tardar ~1 min en despertar en la primera petición.',
+    infraError: 'La API demo aún está despertando (capa gratuita). Vuelve a intentarlo en unos segundos — tus credenciales están bien.',
+    tooManyAttempts: 'Demasiados intentos. Espera un minuto y vuelve a intentar.'
   },
   driver: {
     todayTitle: 'Entregas de hoy', routeOf: 'de', completedSuffix: 'completadas',
@@ -153,24 +133,6 @@ const es: AppCopy = {
     viewSignature: 'Ver firma', signatureTitle: 'Firma del cliente',
     noSignature: 'Sin firma capturada', progress: 'Progreso',
     lastPing: 'Último ping', never: '—'
-  },
-  about: {
-    title: 'Acerca de FleetGo',
-    subtitle: 'Logística de última milla y tracking de flota en tiempo real — proyecto de portfolio',
-    body1: 'FleetGo es una plataforma logística demo: los repartidores trabajan su ruta diaria desde una app móvil (lista de entregas, captura de firma, reporte de incidencias) mientras los coordinadores ven moverse toda la flota en vivo sobre un mapa de despacho.',
-    body2: 'Es una sola app Ionic con dos experiencias por rol que comparten auth, i18n y servicios core. Las posiciones fluyen por SignalR; en esta demo un simulador de flota server-side mueve las unidades por sus rutas para que el mapa siempre esté vivo.',
-    stackTitle: 'Stack',
-    featuresTitle: 'Qué demuestra',
-    features: [
-      'Ionic 8 + Angular 20 standalone, una app con experiencia driver (móvil) y dispatch (escritorio)',
-      'API .NET 9 Clean Architecture con JWT + refresh rotativo y RBAC estricto (el courier solo ve su ruta)',
-      'Tracking en tiempo real: hub SignalR, store de posiciones en memoria (preparado para Redis), simulador de flota',
-      'Reglas de dominio en el servidor: firma obligatoria, entregas cerradas inmutables, eventos append-only',
-      'Mapa Leaflet oscuro, i18n EN/ES a mano, canvas de firma sin librerías extra'
-    ],
-    demoTitle: 'Cuentas demo',
-    demoBody: 'Contraseña para ambas: Demo1234!',
-    sourceLink: 'Código en GitHub', portfolioLink: 'Más proyectos', backToLogin: 'Volver al login'
   }
 };
 

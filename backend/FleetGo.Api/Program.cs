@@ -87,8 +87,19 @@ try
     builder.Services.AddProblemDetails();
     builder.Services.AddHealthChecks();
 
+    // Behind App Service the socket peer is the front-end gateway: honor X-Forwarded-For
+    // so per-IP rate limiting partitions by the real client, not one shared bucket.
+    builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+            | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+
     var app = builder.Build();
 
+    app.UseForwardedHeaders();
     app.UseExceptionHandler();
     app.UseSerilogRequestLogging();
     app.UseCors("frontend");

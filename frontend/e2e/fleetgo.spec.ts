@@ -4,11 +4,28 @@ const PASSWORD = 'Demo1234!';
 const COURIER = 'courier@fleetgo.dev';
 const DISPATCH = 'dispatch@fleetgo.dev';
 
-async function freshPage(browser: Browser): Promise<Page> {
+interface TrackedPage {
+  page: Page;
+  /** pageerror + console.error collected — asserted empty when the test closes the page. */
+  errors: string[];
+}
+
+async function freshPage(browser: Browser): Promise<TrackedPage> {
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.addInitScript(() => localStorage.setItem('fleetgo.lang', 'en'));
-  return page;
+
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(`pageerror: ${e.message}`));
+  page.on('console', m => {
+    if (m.type() === 'error') errors.push(`console: ${m.text().slice(0, 300)}`);
+  });
+  return { page, errors };
+}
+
+async function closeClean(tracked: TrackedPage): Promise<void> {
+  expect(tracked.errors).toEqual([]);
+  await tracked.page.close();
 }
 
 async function login(page: Page, email: string): Promise<void> {
@@ -20,86 +37,87 @@ async function login(page: Page, email: string): Promise<void> {
 }
 
 test.describe('FleetGo E2E', () => {
-  test('about page is public and bilingual', async ({ browser }) => {
-    const page = await freshPage(browser);
-    await page.goto('/about');
-    await expect(page.getByRole('heading', { name: 'About FleetGo' })).toBeVisible();
-    await page.locator('.lang-pill button', { hasText: 'ES' }).click();
-    await expect(page.getByRole('heading', { name: 'Acerca de FleetGo' })).toBeVisible();
-    await page.close();
+  test('about page is public, bilingual and complete', async ({ browser }) => {
+    const t = await freshPage(browser);
+    await t.page.goto('/about');
+    await expect(t.page.getByRole('heading', { name: 'About this project' })).toBeVisible();
+    // The interviewer sections required by the portfolio standard:
+    for (const heading of ['Scope', 'Architecture', 'Design patterns', 'Authentication & security', 'Testing']) {
+      await expect(t.page.getByRole('heading', { name: heading, exact: false })).toBeVisible();
+    }
+    await expect(t.page.locator('table tbody tr')).not.toHaveCount(0);
+
+    await t.page.locator('.lang-pill button', { hasText: 'ES' }).click();
+    await expect(t.page.getByRole('heading', { name: 'Sobre este proyecto' })).toBeVisible();
+    await closeClean(t);
   });
 
   test('courier lands on driver app, RBAC blocks dispatch, session survives reload', async ({ browser }) => {
-    const page = await freshPage(browser);
-    await login(page, COURIER);
-    await expect(page).toHaveURL(/\/driver/);
-    await expect(page.getByText("Today's deliveries")).toBeVisible();
-    await expect(page.locator('.route-line')).toContainText('R-');
+    const t = await freshPage(browser);
+    await login(t.page, COURIER);
+    await expect(t.page).toHaveURL(/\/driver/);
+    await expect(t.page.getByText("Today's deliveries")).toBeVisible();
+    await expect(t.page.locator('.route-line')).toContainText('R-');
 
     // RBAC: a courier asking for /dispatch is sent home
-    await page.goto('/dispatch');
-    await page.waitForURL(/\/driver/);
+    await t.page.goto('/dispatch');
+    await t.page.waitForURL(/\/driver/);
 
     // F5: the refresh-token flow restores the session
-    await page.reload();
-    await expect(page.getByText("Today's deliveries")).toBeVisible();
+    await t.page.reload();
+    await expect(t.page.getByText("Today's deliveries")).toBeVisible();
 
     // i18n toggle reaches the driver screens
-    await page.locator('.lang-pill button', { hasText: 'ES' }).click();
-    await expect(page.getByText('Entregas de hoy')).toBeVisible();
-    await page.close();
+    await t.page.locator('.lang-pill button', { hasText: 'ES' }).click();
+    await expect(t.page.getByText('Entregas de hoy')).toBeVisible();
+    await closeClean(t);
   });
 
   test('coordinator lands on dispatch panel with KPIs, units and live map', async ({ browser }) => {
-    const page = await freshPage(browser);
-    const errors: string[] = [];
-    page.on('pageerror', e => errors.push(e.message));
-
-    await login(page, DISPATCH);
-    await expect(page).toHaveURL(/\/dispatch/);
-    await expect(page.getByText('Live operations')).toBeVisible();
-    await expect(page.getByText('Delivered today:')).toBeVisible();
-    await expect(page.locator('.unit').first()).toBeVisible();
-    await expect(page.locator('.leaflet-container')).toBeVisible();
+    const t = await freshPage(browser);
+    await login(t.page, DISPATCH);
+    await expect(t.page).toHaveURL(/\/dispatch/);
+    await expect(t.page.getByText('Live operations')).toBeVisible();
+    await expect(t.page.getByText('Delivered today:')).toBeVisible();
+    await expect(t.page.locator('.unit').first()).toBeVisible();
+    await expect(t.page.locator('.leaflet-container')).toBeVisible();
 
     // RBAC: a coordinator asking for /driver is sent home
-    await page.goto('/driver');
-    await page.waitForURL(/\/dispatch/);
-
-    expect(errors).toEqual([]);
-    await page.close();
+    await t.page.goto('/driver');
+    await t.page.waitForURL(/\/dispatch/);
+    await closeClean(t);
   });
 
   test('courier delivers with signature and dispatch sees the update live', async ({ browser }) => {
-    const dispatchPage = await freshPage(browser);
-    await login(dispatchPage, DISPATCH);
-    await expect(dispatchPage.locator('.unit').first()).toBeVisible();
+    const dispatch = await freshPage(browser);
+    await login(dispatch.page, DISPATCH);
+    await expect(dispatch.page.locator('.unit').first()).toBeVisible();
 
-    const unitRow = dispatchPage.locator('.unit', { hasText: 'UNIT-07' });
+    const unitRow = dispatch.page.locator('.unit', { hasText: 'UNIT-07' });
     await expect(unitRow).toBeVisible();
     const stopsBefore = await unitRow.locator('.stops').innerText();
 
     // Courier opens the next stop and resolves it
-    const courierPage = await freshPage(browser);
-    await login(courierPage, COURIER);
-    const next = courierPage.locator('.stop.next');
+    const courier = await freshPage(browser);
+    await login(courier.page, COURIER);
+    const next = courier.page.locator('.stop.next');
     await expect(next).toBeVisible();
     await next.click();
-    await courierPage.waitForURL(/\/driver\/delivery\//);
-    await expect(courierPage.locator('.deliver-btn')).toBeVisible();
+    await courier.page.waitForURL(/\/driver\/delivery\//);
+    await expect(courier.page.locator('.deliver-btn')).toBeVisible();
 
     // Sign when the stop requires it
-    if (await courierPage.locator('app-signature-pad canvas').isVisible()) {
-      const box = (await courierPage.locator('app-signature-pad canvas').boundingBox())!;
-      await courierPage.mouse.move(box.x + 20, box.y + box.height / 2);
-      await courierPage.mouse.down();
-      await courierPage.mouse.move(box.x + box.width / 2, box.y + 20, { steps: 8 });
-      await courierPage.mouse.move(box.x + box.width - 20, box.y + box.height - 25, { steps: 8 });
-      await courierPage.mouse.up();
+    if (await courier.page.locator('app-signature-pad canvas').isVisible()) {
+      const box = (await courier.page.locator('app-signature-pad canvas').boundingBox())!;
+      await courier.page.mouse.move(box.x + 20, box.y + box.height / 2);
+      await courier.page.mouse.down();
+      await courier.page.mouse.move(box.x + box.width / 2, box.y + 20, { steps: 8 });
+      await courier.page.mouse.move(box.x + box.width - 20, box.y + box.height - 25, { steps: 8 });
+      await courier.page.mouse.up();
     }
 
-    await courierPage.locator('.deliver-btn').click();
-    await expect(courierPage.locator('.closed .tag.ok')).toBeVisible({ timeout: 15_000 });
+    await courier.page.locator('.deliver-btn').click();
+    await expect(courier.page.locator('.closed .tag.ok')).toBeVisible({ timeout: 15_000 });
 
     // Dispatch updates without a manual refresh (SignalR → throttled refetch)
     await expect(async () => {
@@ -107,26 +125,26 @@ test.describe('FleetGo E2E', () => {
       expect(stopsNow).not.toBe(stopsBefore);
     }).toPass({ timeout: 30_000 });
 
-    await courierPage.close();
-    await dispatchPage.close();
+    await closeClean(courier);
+    await closeClean(dispatch);
   });
 
   test('courier reports an issue and the stop closes as failed', async ({ browser }) => {
-    const page = await freshPage(browser);
-    await login(page, COURIER);
-    const next = page.locator('.stop.next');
+    const t = await freshPage(browser);
+    await login(t.page, COURIER);
+    const next = t.page.locator('.stop.next');
     await expect(next).toBeVisible();
     await next.click();
-    await page.waitForURL(/\/driver\/delivery\//);
+    await t.page.waitForURL(/\/driver\/delivery\//);
 
-    await page.locator('.issue-btn').click();
-    await expect(page.locator('.issue-sheet')).toBeVisible();
-    await page.locator('.reasons button', { hasText: 'Wrong address' }).click();
-    await page.locator('.issue-sheet ion-textarea textarea').fill('E2E: no such street number');
-    await page.locator('.issue-sheet ion-button[color="danger"]').click();
+    await t.page.locator('.issue-btn').click();
+    await expect(t.page.locator('.issue-sheet')).toBeVisible();
+    await t.page.locator('.reasons button', { hasText: 'Wrong address' }).click();
+    await t.page.locator('.issue-sheet ion-textarea textarea').fill('E2E: no such street number');
+    await t.page.locator('.issue-sheet ion-button[color="danger"]').click();
 
-    await expect(page.locator('.closed.failed .tag.fail')).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator('.closed .immutable')).toBeVisible();
-    await page.close();
+    await expect(t.page.locator('.closed.failed .tag.fail')).toBeVisible({ timeout: 15_000 });
+    await expect(t.page.locator('.closed .immutable')).toBeVisible();
+    await closeClean(t);
   });
 });

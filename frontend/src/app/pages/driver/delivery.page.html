@@ -26,7 +26,7 @@
         <div class="chips">
           <span class="chip"><ion-icon name="cube-outline" /> {{ d.parcels }} {{ lang.t().driver.parcels }}</span>
           @if (d.windowEndUtc) {
-            <span class="chip"><ion-icon name="time-outline" /> {{ lang.t().driver.byTime }} {{ d.windowEndUtc + 'Z' | date:'HH:mm' }}</span>
+            <span class="chip"><ion-icon name="time-outline" /> {{ lang.t().driver.byTime }} {{ utc(d.windowEndUtc) | date:'HH:mm' }}</span>
           }
           @if (d.signatureRequired) {
             <span class="chip accent">{{ lang.t().driver.signatureReq }}</span>
@@ -59,7 +59,7 @@
             @if (d.status === 'Delivered') {
               <p class="tag ok">
                 <ion-icon name="checkmark-circle-outline" />
-                {{ lang.t().driver.deliveredAt }} {{ (d.deliveredAtUtc ?? '') + 'Z' | date:'HH:mm' }}
+                {{ lang.t().driver.deliveredAt }} {{ utc(d.deliveredAtUtc) | date:'HH:mm' }}
               </p>
             } @else {
               <p class="tag fail">

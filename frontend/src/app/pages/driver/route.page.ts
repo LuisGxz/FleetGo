@@ -6,6 +6,7 @@ import { addIcons } from 'ionicons';
 import { checkmarkCircle, closeCircle, cubeOutline, logOutOutline } from 'ionicons/icons';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { utc } from '../../core/dates';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { DeliveryDto, RouteDto } from '../../core/models';
@@ -26,6 +27,7 @@ export class RoutePage implements OnInit, OnDestroy {
   readonly auth = inject(AuthService);
   readonly lang = inject(LanguageService);
 
+  readonly utc = utc;
   readonly route = signal<RouteDto | null>(null);
   readonly loading = signal(true);
   readonly error = signal(false);

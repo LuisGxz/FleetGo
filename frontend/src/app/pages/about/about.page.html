@@ -1,48 +1,115 @@
 <ion-content>
   <div class="wrap">
-    <header>
+    <div class="top-row">
+      <a routerLink="/login" class="back">{{ t().back }}</a>
+      <app-lang-pill />
+    </div>
+
+    <header class="hero">
       <div class="brand">
         <span class="logo"><ion-icon name="bus-outline" /></span>
-        <span class="name">FleetGo</span>
+        <h1>{{ t().title }}</h1>
       </div>
-      <app-lang-pill />
+      <p class="lead" [innerHTML]="t().leadHtml"></p>
+      <div class="chips">
+        @for (tech of stack; track tech) { <span class="chip mono">{{ tech }}</span> }
+      </div>
+      <div class="hero-links">
+        <a class="btn primary" routerLink="/login">{{ t().tryDemo }}</a>
+        <a class="btn ghost" href="https://github.com/LuisGxz/FleetGo" target="_blank" rel="noreferrer">
+          <ion-icon name="logo-github" /> {{ t().sourceCode }}
+        </a>
+      </div>
+      <p class="demo-cred">
+        {{ t().demoCreds }} <code>courier&#64;fleetgo.dev</code> · <code>dispatch&#64;fleetgo.dev</code> / <code>Demo1234!</code>
+      </p>
     </header>
 
-    <h1>{{ lang.t().about.title }}</h1>
-    <p class="subtitle">{{ lang.t().about.subtitle }}</p>
+    <section class="card">
+      <h2 class="mono">{{ t().scopeTitle }}</h2>
+      <ul class="two-col">
+        @for (item of t().scope; track $index) { <li>{{ item }}</li> }
+      </ul>
+    </section>
 
-    <p class="body">{{ lang.t().about.body1 }}</p>
-    <p class="body">{{ lang.t().about.body2 }}</p>
+    <section class="card">
+      <h2 class="mono">{{ t().archTitle }}</h2>
+      <p class="intro">{{ t().archIntro }}</p>
+      <pre class="diagram">Api ──► Infrastructure ──► Application ──► Domain
+            │                    ▲
+            └── SignalR hub ◄────┘  (IPositionStore · ITrackingNotifier)</pre>
+      <ul>
+        @for (item of t().archBullets; track $index) { <li [innerHTML]="item"></li> }
+      </ul>
+    </section>
 
-    <h2 class="mono">{{ lang.t().about.stackTitle }}</h2>
-    <div class="chips">
-      @for (item of stack; track item) {
-        <span class="chip mono">{{ item }}</span>
-      }
+    <section class="card">
+      <h2 class="mono">{{ t().patternsTitle }}</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>{{ t().patternsHead[0] }}</th><th>{{ t().patternsHead[1] }}</th><th>{{ t().patternsHead[2] }}</th>
+          </tr></thead>
+          <tbody>
+            @for (row of t().patterns; track row.pattern) {
+              <tr>
+                <td class="pat">{{ row.pattern }}</td>
+                <td class="mono where">{{ row.where }}</td>
+                <td class="dim">{{ row.why }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="mono">{{ t().authTitle }}</h2>
+      <ul>
+        @for (item of t().auth; track $index) { <li [innerHTML]="item"></li> }
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2 class="mono">{{ t().dataTitle }}</h2>
+      <ul>
+        @for (item of t().data; track $index) { <li [innerHTML]="item"></li> }
+      </ul>
+    </section>
+
+    <div class="grid-2">
+      <section class="card">
+        <h2 class="mono">{{ t().rtTitle }}</h2>
+        <ul>
+          @for (item of t().rt; track $index) { <li [innerHTML]="item"></li> }
+        </ul>
+      </section>
+      <section class="card">
+        <h2 class="mono">{{ t().perfTitle }}</h2>
+        <ul>
+          @for (item of t().perf; track $index) { <li [innerHTML]="item"></li> }
+        </ul>
+      </section>
     </div>
 
-    <h2 class="mono">{{ lang.t().about.featuresTitle }}</h2>
-    <ul>
-      @for (f of lang.t().about.features; track f) {
-        <li>{{ f }}</li>
-      }
-    </ul>
+    <section class="card">
+      <h2 class="mono">{{ t().testTitle }}</h2>
+      <ul>
+        @for (item of t().test; track $index) { <li [innerHTML]="item"></li> }
+      </ul>
+    </section>
 
-    <h2 class="mono">{{ lang.t().about.demoTitle }}</h2>
-    <div class="demo">
-      <p class="mono">courier&#64;fleetgo.dev · dispatch&#64;fleetgo.dev</p>
-      <p class="hint">{{ lang.t().about.demoBody }}</p>
-    </div>
+    <section class="card trade">
+      <h2 class="mono">{{ t().tradeTitle }}</h2>
+      <ul>
+        @for (item of t().trade; track $index) { <li [innerHTML]="item"></li> }
+      </ul>
+      <p class="dim deep">
+        {{ t().deepDive }}
+        <a href="https://github.com/LuisGxz/FleetGo/blob/main/docs/TECHNICAL.md" target="_blank" rel="noreferrer">docs/TECHNICAL.md</a>
+      </p>
+    </section>
 
-    <div class="links">
-      <a href="https://github.com/Luisgxz/FleetGo" target="_blank" rel="noopener">
-        <ion-icon name="logo-github" /> {{ lang.t().about.sourceLink }}
-      </a>
-      <a href="https://luisgxz.github.io/" target="_blank" rel="noopener">
-        <ion-icon name="open-outline" /> {{ lang.t().about.portfolioLink }}
-      </a>
-    </div>
-
-    <a routerLink="/login" class="back-link">{{ lang.t().about.backToLogin }}</a>
+    <footer class="foot" [innerHTML]="t().footer"></footer>
   </div>
 </ion-content>

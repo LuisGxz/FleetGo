@@ -49,7 +49,7 @@
                 } @else if (d.status === 'Failed') {
                   <ion-icon name="close-circle" class="fail" />
                 } @else if (d.windowEndUtc) {
-                  <span class="eta num">{{ lang.t().driver.eta }} {{ d.windowEndUtc + 'Z' | date:'HH:mm' }}</span>
+                  <span class="eta num">{{ lang.t().driver.eta }} {{ utc(d.windowEndUtc) | date:'HH:mm' }}</span>
                 }
               </div>
               <p class="name" [class.struck]="d.status === 'Delivered'">{{ d.customerName }}</p>
@@ -57,7 +57,7 @@
               @if (next) {
                 <div class="cta-row">
                   @if (d.windowEndUtc) {
-                    <span class="eta num">{{ lang.t().driver.eta }} <strong>{{ d.windowEndUtc + 'Z' | date:'HH:mm' }}</strong></span>
+                    <span class="eta num">{{ lang.t().driver.eta }} <strong>{{ utc(d.windowEndUtc) | date:'HH:mm' }}</strong></span>
                   } @else { <span></span> }
                   <span class="open-cta">{{ lang.t().driver.open }}</span>
                 </div>

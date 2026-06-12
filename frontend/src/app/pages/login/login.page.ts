@@ -47,7 +47,15 @@ export class LoginPage {
       const user = await this.loginWithColdStartRetry();
       this.router.navigate([this.auth.homeFor(user.role)]);
     } catch (e) {
-      this.errors.set(apiErrorMessages(e, this.lang.t().login.errorFallback));
+      const status = (e as { status?: number })?.status ?? 0;
+      // Infrastructure failures are NOT a credentials problem — say so.
+      if (status === 0 || status === 408 || status >= 500) {
+        this.errors.set([this.lang.t().login.infraError]);
+      } else if (status === 429) {
+        this.errors.set([this.lang.t().login.tooManyAttempts]);
+      } else {
+        this.errors.set(apiErrorMessages(e, this.lang.t().login.errorFallback));
+      }
     } finally {
       clearTimeout(slowTimer);
       this.slow.set(false);
@@ -61,7 +69,9 @@ export class LoginPage {
    * real credential errors (400/401/423) surface immediately.
    */
   private async loginWithColdStartRetry(): Promise<UserDto> {
-    const COLD_START_ATTEMPTS = 4;
+    // SQL serverless can take ~60 s to resume — keep retrying through that window.
+    const COLD_START_ATTEMPTS = 9;
+    const RETRY_DELAY_MS = 8000;
     for (let attempt = 1; ; attempt++) {
       try {
         return await this.auth.login(this.email.trim(), this.password);
@@ -70,7 +80,7 @@ export class LoginPage {
         const isInfra = status === 0 || status === 408 || status >= 500;
         if (!isInfra || attempt >= COLD_START_ATTEMPTS) throw e;
         this.slow.set(true);
-        await new Promise(resolve => setTimeout(resolve, 6000));
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
       }
     }
   }

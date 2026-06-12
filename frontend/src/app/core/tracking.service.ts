@@ -22,10 +22,12 @@ export class TrackingService {
     this.listeners++;
     if (this.connection) return;
 
+    // LogLevel.None: failures are already handled (withAutomaticReconnect + the retry below),
+    // and negotiate calls aborted by page unload would otherwise spam console.error.
     const connection = new HubConnectionBuilder()
       .withUrl(HUB_URL, { accessTokenFactory: () => this.auth.accessToken ?? '' })
       .withAutomaticReconnect()
-      .configureLogging(LogLevel.Warning)
+      .configureLogging(LogLevel.None)
       .build();
 
     connection.on('UnitMoved', (e: UnitMovedEvent) => this.unitMoved$.next(e));

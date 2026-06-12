@@ -52,7 +52,7 @@
                 <div class="row">
                   <span class="mono code" [class.accent]="selected() === u.unitCode">{{ u.unitCode }} · {{ u.courierName }}</span>
                   @if (u.etaUtc) {
-                    <span class="eta num">ETA {{ u.etaUtc + 'Z' | date:'HH:mm' }}</span>
+                    <span class="eta num">ETA {{ utc(u.etaUtc) | date:'HH:mm' }}</span>
                   } @else {
                     <span class="eta num">{{ statusTag(u.status) }}</span>
                   }
@@ -109,7 +109,7 @@
                 <div class="state">
                   @if (d.status === 'Delivered') {
                     <ion-icon name="checkmark-circle" class="ok" />
-                    @if (d.deliveredAtUtc) { <span class="num">{{ d.deliveredAtUtc + 'Z' | date:'HH:mm' }}</span> }
+                    @if (d.deliveredAtUtc) { <span class="num">{{ utc(d.deliveredAtUtc) | date:'HH:mm' }}</span> }
                     @if (d.signaturePng) {
                       <button type="button" class="sig-link" (click)="showSignature(d)">{{ lang.t().dispatch.viewSignature }}</button>
                     }

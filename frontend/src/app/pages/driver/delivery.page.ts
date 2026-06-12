@@ -9,6 +9,7 @@ import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
 import { apiErrorMessages } from '../../core/api-error';
 import { ApiService } from '../../core/api.service';
+import { utc } from '../../core/dates';
 import { distanceEtaLabel } from '../../core/geo';
 import { LanguageService } from '../../core/language.service';
 import { DeliveryDto, FailReason, RouteDto } from '../../core/models';
@@ -36,6 +37,7 @@ export class DeliveryPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly positions = inject(PositionService);
   readonly lang = inject(LanguageService);
 
+  readonly utc = utc;
   readonly route = signal<RouteDto | null>(null);
   readonly delivery = signal<DeliveryDto | null>(null);
   readonly loading = signal(true);
