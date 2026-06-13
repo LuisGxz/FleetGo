@@ -56,11 +56,18 @@ header {
   .right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     font-size: 12px;
+
+    .kpis {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
 
     .kpi {
       color: var(--deep-300);
+      white-space: nowrap;
       strong { color: #fff; }
       .ok { color: var(--ok-500); }
       .warn { color: var(--fleet-400); }

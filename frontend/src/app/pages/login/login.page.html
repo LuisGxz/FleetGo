@@ -10,6 +10,7 @@
 
     <main>
       <h1>{{ lang.t().login.tagline }}</h1>
+      <p class="intro">{{ lang.t().login.intro }}</p>
 
       <form (ngSubmit)="submit()">
         <ion-input
@@ -46,6 +47,7 @@
           <span class="mono">dispatch&#64;fleetgo.dev</span>
           <span class="hint">{{ lang.t().login.demoDispatch }}</span>
         </button>
+        <p class="cross-tip">{{ lang.t().login.crossRoleTip }}</p>
       </section>
 
       <a routerLink="/about" class="about-link">{{ lang.t().login.aboutLink }}</a>

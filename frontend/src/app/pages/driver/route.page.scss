@@ -5,10 +5,13 @@
 }
 
 header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+
+  .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
   h1 {
     font-size: 19px;
@@ -16,12 +19,23 @@ header {
     color: #fff;
     margin: 0;
   }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+.route-head {
+  margin-top: 4px;
 }
 
 .avatar {

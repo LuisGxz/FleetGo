@@ -5,13 +5,19 @@
 
   <div class="wrap">
     <header>
-      <h1>{{ lang.t().driver.todayTitle }}</h1>
-      <div class="header-actions">
+      <div class="title-row">
+        <h1>{{ lang.t().driver.todayTitle }}</h1>
+        <div class="header-actions">
+          <app-demo-guide [role]="'Courier'" data-tour="driver-help" (replay)="replayTour()" />
+          <div class="avatar" [title]="auth.user()?.fullName">{{ initials() }}</div>
+          <button type="button" class="icon-btn" (click)="auth.logout()" [attr.aria-label]="lang.t().common.signOut">
+            <ion-icon name="log-out-outline" />
+          </button>
+        </div>
+      </div>
+      <div class="meta-row">
+        <app-role-badge [role]="'Courier'" />
         <app-lang-pill />
-        <div class="avatar" [title]="auth.user()?.fullName">{{ initials() }}</div>
-        <button type="button" class="icon-btn" (click)="auth.logout()" [attr.aria-label]="lang.t().common.signOut">
-          <ion-icon name="log-out-outline" />
-        </button>
       </div>
     </header>
 
@@ -30,16 +36,19 @@
       </div>
     } @else {
       @if (route(); as r) {
-        <p class="route-line num mono">
-          {{ r.routeCode }} · {{ r.completed }} {{ lang.t().driver.routeOf }} {{ r.total }} {{ lang.t().driver.completedSuffix }}
-        </p>
-        <div class="progress"><div class="bar" [style.width.%]="progressPct()"></div></div>
+        <div class="route-head" data-tour="driver-progress">
+          <p class="route-line num mono">
+            {{ r.routeCode }} · {{ r.completed }} {{ lang.t().driver.routeOf }} {{ r.total }} {{ lang.t().driver.completedSuffix }}
+          </p>
+          <div class="progress"><div class="bar" [style.width.%]="progressPct()"></div></div>
+        </div>
 
         <div class="stops">
           @for (d of r.deliveries; track d.id) {
             @let done = d.status !== 'Pending';
             @let next = d.id === nextId();
-            <button type="button" class="stop" [class.next]="next" [class.done]="done" (click)="open(d)">
+            <button type="button" class="stop" [class.next]="next" [class.done]="done"
+                    [attr.data-tour]="next ? 'driver-next' : null" (click)="open(d)">
               <div class="row">
                 <span class="code mono num" [class.accent]="next">#{{ d.packageCode }}</span>
                 @if (next) {

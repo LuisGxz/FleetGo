@@ -69,8 +69,16 @@ public class DemoDataSeeder(FleetGoDbContext db, IPasswordHasherService hasher, 
 
         var profiles = await db.CourierProfiles.ToListAsync(ct);
         var routeNumber = 1;
-        var pkg = 88350;
         var baseTime = clock.UtcNow.Date.AddHours(15); // delivery windows this afternoon/evening UTC
+
+        // PackageCode is globally unique, but the deterministic RNG would regenerate identical
+        // codes every day — colliding with prior days' deliveries. Start above the highest
+        // existing code so the daily route regeneration never hits the unique index.
+        var existingCodes = await db.Deliveries.Select(d => d.PackageCode).ToListAsync(ct);
+        var pkg = existingCodes
+            .Select(code => int.TryParse(code.AsSpan(4), out var n) ? n : 0) // "PKG-88630" → 88630
+            .Append(88350)
+            .Max();
 
         foreach (var profile in profiles)
         {

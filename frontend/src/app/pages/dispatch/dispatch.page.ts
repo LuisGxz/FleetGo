@@ -10,8 +10,11 @@ import { utc } from '../../core/dates';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { DeliveryDto, DispatchSummaryDto, RouteDto, RouteStatus, UnitStatusDto } from '../../core/models';
+import { TourService, TourStep } from '../../core/tour.service';
 import { TrackingService } from '../../core/tracking.service';
+import { DemoGuideComponent } from '../../shared/demo-guide.component';
 import { LangPillComponent } from '../../shared/lang-pill.component';
+import { RoleBadgeComponent } from '../../shared/role-badge.component';
 
 const TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const TILES_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
@@ -25,13 +28,15 @@ type Tab = 'Active' | 'Planned' | 'Completed';
   selector: 'app-dispatch',
   templateUrl: './dispatch.page.html',
   styleUrl: './dispatch.page.scss',
-  imports: [DatePipe, DecimalPipe, IonContent, IonSpinner, IonButton, IonIcon, IonModal, LangPillComponent],
+  imports: [DatePipe, DecimalPipe, IonContent, IonSpinner, IonButton, IonIcon, IonModal,
+    LangPillComponent, RoleBadgeComponent, DemoGuideComponent],
 })
 export class DispatchPage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('map') mapRef!: ElementRef<HTMLDivElement>;
 
   private readonly api = inject(ApiService);
   private readonly tracking = inject(TrackingService);
+  private readonly tour = inject(TourService);
   readonly auth = inject(AuthService);
   readonly lang = inject(LanguageService);
 
@@ -76,6 +81,23 @@ export class DispatchPage implements OnInit, AfterViewInit, OnDestroy {
     // Delivery transitions change progress/KPIs — refresh cheaply, throttled by the interval below.
     this.subs.push(this.tracking.deliveryUpdated$.subscribe(() => this.scheduleRefresh()));
     this.refreshTimer = setInterval(() => this.refreshData(), 15_000);
+
+    // First-run guided tour once data + map are on screen (ngAfterViewInit has run by now).
+    if (!this.error()) setTimeout(() => this.tour.start('dispatch', this.dispatchSteps()), 900);
+  }
+
+  private dispatchSteps(): TourStep[] {
+    const s = this.lang.t().tour.dispatch;
+    return [
+      { target: '[data-tour="dispatch-kpis"]', title: s[0].title, body: s[0].body, placement: 'bottom' },
+      { target: '[data-tour="dispatch-units"]', title: s[1].title, body: s[1].body },
+      { target: '[data-tour="dispatch-map"]', title: s[2].title, body: s[2].body },
+      { target: '[data-tour="dispatch-help"]', title: s[3].title, body: s[3].body, placement: 'bottom' },
+    ];
+  }
+
+  replayTour(): void {
+    this.tour.start('dispatch', this.dispatchSteps(), { force: true });
   }
 
   private resizeObserver: ResizeObserver | null = null;

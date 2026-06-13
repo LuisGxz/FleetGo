@@ -8,7 +8,7 @@
     </div>
   } @else {
     @if (delivery(); as d) {
-      <div class="map-area">
+      <div class="map-area" data-tour="delivery-map">
         <div #map class="map"></div>
         <button type="button" class="back-btn" (click)="back()" [attr.aria-label]="lang.t().common.back">
           <ion-icon name="arrow-back" />
@@ -47,11 +47,11 @@
             </div>
           }
 
-          <ion-button expand="block" class="deliver-btn" (click)="deliver()" [disabled]="busy()">
+          <ion-button expand="block" class="deliver-btn" data-tour="delivery-deliver" (click)="deliver()" [disabled]="busy()">
             @if (busy()) { <ion-spinner name="crescent" /> {{ lang.t().driver.delivering }} }
             @else { <ion-icon name="checkmark-circle-outline" slot="start" /> {{ lang.t().driver.markDelivered }} }
           </ion-button>
-          <ion-button expand="block" fill="outline" class="issue-btn" (click)="issueOpen.set(true)" [disabled]="busy()">
+          <ion-button expand="block" fill="outline" class="issue-btn" data-tour="delivery-issue" (click)="issueOpen.set(true)" [disabled]="busy()">
             {{ lang.t().driver.reportIssue }}
           </ion-button>
         } @else {

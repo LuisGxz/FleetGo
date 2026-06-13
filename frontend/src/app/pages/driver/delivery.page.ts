@@ -14,6 +14,7 @@ import { distanceEtaLabel } from '../../core/geo';
 import { LanguageService } from '../../core/language.service';
 import { DeliveryDto, FailReason, RouteDto } from '../../core/models';
 import { PositionService } from '../../core/position.service';
+import { TourService, TourStep } from '../../core/tour.service';
 import { SignaturePadComponent } from '../../shared/signature-pad.component';
 
 const TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
@@ -35,6 +36,7 @@ export class DeliveryPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly positions = inject(PositionService);
+  private readonly tour = inject(TourService);
   readonly lang = inject(LanguageService);
 
   readonly utc = utc;
@@ -67,6 +69,17 @@ export class DeliveryPage implements OnInit, AfterViewInit, OnDestroy {
     }
     // The #map div appears on the next change-detection pass — defer until it exists.
     setTimeout(() => this.renderMap());
+    // Guided tour of the delivery flow, only when there's something to do here.
+    if (this.isPending()) setTimeout(() => this.tour.start('driver-delivery', this.deliverySteps()), 800);
+  }
+
+  private deliverySteps(): TourStep[] {
+    const s = this.lang.t().tour.driverDelivery;
+    return [
+      { target: '[data-tour="delivery-map"]', title: s[0].title, body: s[0].body, placement: 'bottom' },
+      { target: '[data-tour="delivery-deliver"]', title: s[1].title, body: s[1].body, placement: 'top' },
+      { target: '[data-tour="delivery-issue"]', title: s[2].title, body: s[2].body, placement: 'top' },
+    ];
   }
 
   ngAfterViewInit(): void {

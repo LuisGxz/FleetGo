@@ -112,8 +112,19 @@ export class SignaturePadComponent implements AfterViewInit, OnDestroy {
     const canvas = this.canvasRef.nativeElement;
     const parent = canvas.parentElement!;
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = parent.clientWidth * ratio;
-    canvas.height = parent.clientHeight * ratio;
+    const width = Math.round(parent.clientWidth * ratio);
+    const height = Math.round(parent.clientHeight * ratio);
+
+    // ResizeObserver fires on observe() and on sub-pixel reflows even when the canvas
+    // dimensions don't actually change. Resizing the canvas clears it, so a spurious
+    // resize after the user signed would silently erase the signature. Bail out unless
+    // the size truly changed, and preserve any existing drawing across a real resize.
+    const sized = this.ctx !== null;
+    if (sized && canvas.width === width && canvas.height === height) return;
+
+    const snapshot = this.hasInk() ? canvas.toDataURL('image/png') : null;
+    canvas.width = width;
+    canvas.height = height;
 
     const ctx = canvas.getContext('2d')!;
     ctx.scale(ratio, ratio);
@@ -122,6 +133,13 @@ export class SignaturePadComponent implements AfterViewInit, OnDestroy {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     this.ctx = ctx;
-    this.setInk(false);
+
+    if (snapshot) {
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, parent.clientWidth, parent.clientHeight);
+      img.src = snapshot;
+    } else if (!sized) {
+      this.setInk(false);
+    }
   }
 }

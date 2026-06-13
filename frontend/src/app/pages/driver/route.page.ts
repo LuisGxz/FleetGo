@@ -10,19 +10,24 @@ import { utc } from '../../core/dates';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { DeliveryDto, RouteDto } from '../../core/models';
+import { TourService, TourStep } from '../../core/tour.service';
 import { TrackingService } from '../../core/tracking.service';
+import { DemoGuideComponent } from '../../shared/demo-guide.component';
 import { LangPillComponent } from '../../shared/lang-pill.component';
+import { RoleBadgeComponent } from '../../shared/role-badge.component';
 
 /** Driver home: today's route with ordered stops and progress (mockup phone 1). */
 @Component({
   selector: 'app-route',
   templateUrl: './route.page.html',
   styleUrl: './route.page.scss',
-  imports: [DatePipe, IonContent, IonRefresher, IonRefresherContent, IonSpinner, IonButton, IonIcon, LangPillComponent],
+  imports: [DatePipe, IonContent, IonRefresher, IonRefresherContent, IonSpinner, IonButton, IonIcon,
+    LangPillComponent, RoleBadgeComponent, DemoGuideComponent],
 })
 export class RoutePage implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly tracking = inject(TrackingService);
+  private readonly tour = inject(TourService);
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
   readonly lang = inject(LanguageService);
@@ -44,6 +49,21 @@ export class RoutePage implements OnInit, OnDestroy {
     this.sub = this.tracking.deliveryUpdated$.subscribe(e => {
       if (e.routeId === this.route()?.id) this.load(true);
     });
+    // First-run guided tour, once the route (and its targets) are on screen.
+    if (this.route()) setTimeout(() => this.tour.start('driver', this.driverSteps()), 700);
+  }
+
+  private driverSteps(): TourStep[] {
+    const s = this.lang.t().tour.driver;
+    return [
+      { target: '[data-tour="driver-progress"]', title: s[0].title, body: s[0].body, placement: 'bottom' },
+      { target: '[data-tour="driver-next"]', title: s[1].title, body: s[1].body },
+      { target: '[data-tour="driver-help"]', title: s[2].title, body: s[2].body, placement: 'bottom' },
+    ];
+  }
+
+  replayTour(): void {
+    this.tour.start('driver', this.driverSteps(), { force: true });
   }
 
   ngOnDestroy(): void {

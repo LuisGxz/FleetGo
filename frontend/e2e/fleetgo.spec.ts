@@ -10,10 +10,18 @@ interface TrackedPage {
   errors: string[];
 }
 
-async function freshPage(browser: Browser): Promise<TrackedPage> {
+async function freshPage(browser: Browser, opts: { showTours?: boolean } = {}): Promise<TrackedPage> {
   const context = await browser.newContext();
   const page = await context.newPage();
-  await page.addInitScript(() => localStorage.setItem('fleetgo.lang', 'en'));
+  // Flow tests pre-mark the guided tours as seen so the overlay never intercepts clicks;
+  // the dedicated tour test opts back in with { showTours: true }.
+  await page.addInitScript((show: boolean) => {
+    localStorage.setItem('fleetgo.lang', 'en');
+    if (!show) {
+      ['driver', 'driver-delivery', 'dispatch'].forEach(id =>
+        localStorage.setItem(`fleetgo.tour.${id}`, '1'));
+    }
+  }, opts.showTours ?? false);
 
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(`pageerror: ${e.message}`));
@@ -106,14 +114,17 @@ test.describe('FleetGo E2E', () => {
     await courier.page.waitForURL(/\/driver\/delivery\//);
     await expect(courier.page.locator('.deliver-btn')).toBeVisible();
 
-    // Sign when the stop requires it
+    // Sign when the stop requires it — wait for the mini-map/layout to settle so the
+    // canvas receives pointer events, then assert the ink actually registered.
     if (await courier.page.locator('app-signature-pad canvas').isVisible()) {
+      await courier.page.waitForTimeout(900);
       const box = (await courier.page.locator('app-signature-pad canvas').boundingBox())!;
-      await courier.page.mouse.move(box.x + 20, box.y + box.height / 2);
+      await courier.page.mouse.move(box.x + 25, box.y + box.height / 2);
       await courier.page.mouse.down();
-      await courier.page.mouse.move(box.x + box.width / 2, box.y + 20, { steps: 8 });
-      await courier.page.mouse.move(box.x + box.width - 20, box.y + box.height - 25, { steps: 8 });
+      await courier.page.mouse.move(box.x + box.width / 2, box.y + 18, { steps: 10 });
+      await courier.page.mouse.move(box.x + box.width - 25, box.y + box.height - 22, { steps: 10 });
       await courier.page.mouse.up();
+      await expect(courier.page.locator('app-signature-pad .pad.signed')).toBeVisible();
     }
 
     await courier.page.locator('.deliver-btn').click();
@@ -127,6 +138,39 @@ test.describe('FleetGo E2E', () => {
 
     await closeClean(courier);
     await closeClean(dispatch);
+  });
+
+  test('guided demo layer: tour auto-starts, role badge and how-to-explore guide', async ({ browser }) => {
+    const t = await freshPage(browser, { showTours: true });
+    await login(t.page, COURIER);
+
+    // First-run tour auto-starts as spotlight coach-marks
+    const card = t.page.locator('.coach-card');
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    await expect(card.locator('.step-count')).toHaveText('1 / 3');
+    await card.locator('.primary').click();
+    await expect(card.locator('.step-count')).toHaveText('2 / 3');
+    await card.locator('.primary').click();
+    await card.locator('.primary').click(); // "Got it" on the last step finishes
+    await expect(t.page.locator('.tour-overlay')).toHaveCount(0);
+
+    // Role badge explains what this role can / can't do (the RBAC story)
+    await t.page.locator('app-role-badge .badge').click();
+    const pop = t.page.locator('app-role-badge .pop');
+    await expect(pop).toBeVisible();
+    await expect(pop).toContainText('your own daily route');
+    await pop.locator('.x').click();
+
+    // How-to-explore guide lists role scenarios and can replay the tour
+    await t.page.locator('app-demo-guide .help-btn').click();
+    await expect(t.page.locator('.sheet')).toBeVisible();
+    await expect(t.page.locator('.sheet .scenarios li')).toHaveCount(4);
+    await t.page.locator('.sheet .replay').click();
+    await expect(card).toBeVisible(); // tour replayed on demand
+    await card.locator('.skip').click();
+    await expect(t.page.locator('.tour-overlay')).toHaveCount(0);
+
+    await closeClean(t);
   });
 
   test('courier reports an issue and the stop closes as failed', async ({ browser }) => {

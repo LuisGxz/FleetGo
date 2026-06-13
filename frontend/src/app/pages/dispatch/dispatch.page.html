@@ -10,10 +10,14 @@
       </div>
       <div class="right num">
         @if (summary(); as s) {
-          <span class="kpi">{{ lang.t().dispatch.deliveredToday }} <strong>{{ s.deliveredToday }}</strong></span>
-          <span class="kpi">{{ lang.t().dispatch.onTime }} <strong class="ok">{{ s.onTimePct | number:'1.1-1' }}%</strong></span>
-          <span class="kpi">{{ lang.t().dispatch.delays }} <strong class="warn">{{ s.delays }}</strong></span>
+          <span class="kpis" data-tour="dispatch-kpis">
+            <span class="kpi">{{ lang.t().dispatch.deliveredToday }} <strong>{{ s.deliveredToday }}</strong></span>
+            <span class="kpi">{{ lang.t().dispatch.onTime }} <strong class="ok">{{ s.onTimePct | number:'1.1-1' }}%</strong></span>
+            <span class="kpi">{{ lang.t().dispatch.delays }} <strong class="warn">{{ s.delays }}</strong></span>
+          </span>
         }
+        <app-role-badge [role]="'Coordinator'" />
+        <app-demo-guide [role]="'Coordinator'" data-tour="dispatch-help" (replay)="replayTour()" />
         <app-lang-pill />
         <button type="button" class="icon-btn" (click)="auth.logout()" [attr.aria-label]="lang.t().common.signOut">
           <ion-icon name="log-out-outline" />
@@ -22,7 +26,7 @@
     </header>
 
     <div class="grid">
-      <aside>
+      <aside data-tour="dispatch-units">
         <div class="tabs">
           <button type="button" [class.on]="tab() === 'Active'" (click)="tab.set('Active')">
             {{ lang.t().dispatch.tabActive }} ({{ counts().Active }})
@@ -43,7 +47,10 @@
             <ion-button fill="outline" size="small" (click)="load()">{{ lang.t().common.retry }}</ion-button>
           </div>
         } @else if (!visibleUnits().length) {
-          <div class="empty-state"><p>{{ lang.t().dispatch.noUnits }}</p></div>
+          <div class="empty-state">
+            <p>{{ lang.t().dispatch.noUnits }}</p>
+            <p class="hint">{{ lang.t().dispatch.noUnitsHint }}</p>
+          </div>
         } @else {
           <div class="unit-list">
             @for (u of visibleUnits(); track u.unitCode) {
@@ -68,7 +75,7 @@
         }
       </aside>
 
-      <div class="map-host">
+      <div class="map-host" data-tour="dispatch-map">
         <div #map class="map"></div>
       </div>
     </div>
