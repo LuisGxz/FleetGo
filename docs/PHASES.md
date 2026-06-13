@@ -54,6 +54,13 @@
 - Estándar nuevo en el doc maestro: **"Quality gate de entrega — FinPulse es la vara"** (estructura exacta de /about, console.error = fallo, mensajes de error que no mienten, checklist final).
 - Nota: en Pages, las rutas profundas devuelven el documento con status 404 (fallback SPA) — la app funciona; es la limitación documentada de GitHub Pages.
 
+## Post-entrega — Capa de Demo Guiada (2026-06-13, feedback del usuario)
+- Nuevo estándar del portfolio: **onboarding role-aware** para que un reclutador entienda qué es la app, qué puede hacer y cómo cambia según el rol. 6 piezas: login orientador, badge "Demo · Rol" con capacidades (popover), tour spotlight de primer ingreso (coach-marks), panel "Cómo explorar" con escenarios + replay, estados vacíos que enseñan, hint del "aha" cross-rol.
+- Arquitectura reutilizable: `core/tour.service.ts` (signals + localStorage por tour id, replay con `{force}`) + `shared/coach-mark.component.ts` (overlay global montado en el root, spotlight por `[data-tour]`, reposiciona en scroll/resize, salta targets ausentes, `prefers-reduced-motion`) + `shared/role-badge.component.ts` + `shared/demo-guide.component.ts`. Tours: `driver` (3), `driver-delivery` (3), `dispatch` (4, último = aha "entrega como courier y míralo en vivo aquí").
+- **Bug real cazado por el E2E estricto**: el `signature-pad` borraba el trazo — su `ResizeObserver` disparaba `resize()` en reflows espurios (incluido tras firmar), limpiando el canvas y reseteando el ink. Fix: ignorar resizes sin cambio real de dimensiones y preservar el dibujo (snapshot→restore) en resizes reales. El test ahora dibuja tras esperar que asiente el mini-mapa y aserta que el ink registró.
+- E2E 6/6 (test dedicado del tour: auto-arranque, pasos, badge, panel, replay) + 0 console.error. Estándar documentado en `../docs/PORTFOLIO_PROJECTS.md` (sección 2 → "Capa de Demo Guiada" + checklist de entrega).
+- ⚠️ El backend de Azure crasheaba (503) al pasar a 2026-06-13: el bug del seeder (PackageCode determinista duplicado en regeneración diaria) tumbaba el contenedor al arrancar. Desplegado el fix (contador de PKG arranca sobre el máximo existente) + `UseForwardedHeaders` (rate limit por IP real del cliente tras el gateway).
+
 ## Cómo correr (dev)
 - API: `dotnet run --project backend/FleetGo.Api --urls http://localhost:5200` (migra+seed en Development; simulador ON).
 - App: `npm start` en frontend/ (http://localhost:4200).
