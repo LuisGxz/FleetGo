@@ -1,9 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { API_URL } from './config';
 import { AuthResponse, UserDto } from './models';
+
+// A cold App Service often holds the connection open while it loads instead of failing
+// fast — without a cap the login spinner would hang forever. Abort an attempt after this
+// so the caller's cold-start retry can fire against an increasingly-warm server.
+const LOGIN_TIMEOUT_MS = 22_000;
 
 const REFRESH_KEY = 'fleetgo.refreshToken';
 const USER_KEY = 'fleetgo.user';
@@ -25,7 +30,8 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<UserDto> {
     const auth = await firstValueFrom(
-      this.http.post<AuthResponse>(`${API_URL}/auth/login`, { email, password }));
+      this.http.post<AuthResponse>(`${API_URL}/auth/login`, { email, password })
+        .pipe(timeout(LOGIN_TIMEOUT_MS)));
     this.storeSession(auth);
     return auth.user;
   }
