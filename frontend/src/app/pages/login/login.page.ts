@@ -6,7 +6,7 @@ import { addIcons } from 'ionicons';
 import { busOutline, mapOutline } from 'ionicons/icons';
 import { apiErrorMessages } from '../../core/api-error';
 import { AuthService } from '../../core/auth.service';
-import { API_BASE } from '../../core/config';
+import { API_URL } from '../../core/config';
 import { LanguageService } from '../../core/language.service';
 import { UserDto } from '../../core/models';
 import { LangPillComponent } from '../../shared/lang-pill.component';
@@ -33,9 +33,10 @@ export class LoginPage implements OnInit {
   }
 
   ngOnInit(): void {
-    // Pre-warm the free-tier API while the visitor reads the page and types, so the
-    // container is (often) already up by the time they submit. Fire-and-forget.
-    fetch(`${API_BASE}/health`, { mode: 'no-cors' }).catch(() => undefined);
+    // Pre-warm the free-tier stack while the visitor reads the page and types: /warmup
+    // wakes BOTH the App Service container and the auto-paused serverless DB, so by submit
+    // time the cold start is usually already over. Fire-and-forget.
+    fetch(`${API_URL}/warmup`, { mode: 'no-cors' }).catch(() => undefined);
   }
 
   fill(email: string): void {

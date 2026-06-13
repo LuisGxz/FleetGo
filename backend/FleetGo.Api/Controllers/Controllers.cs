@@ -7,6 +7,7 @@ using FleetGo.Application.Routes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 
 namespace FleetGo.Api.Controllers;
 
@@ -28,6 +29,25 @@ public class AuthController(AuthService auth) : ControllerBase
     {
         await auth.LogoutAsync(request, ct);
         return NoContent();
+    }
+}
+
+[ApiController]
+[Route("api/v1/warmup")]
+public class WarmupController(IAppDbContext db) : ControllerBase
+{
+    /// <summary>
+    /// Public readiness poke, called when the login page loads. Touches the DB so the
+    /// serverless tier starts resuming while the visitor reads and types — shrinking the
+    /// cold-start wait at submit time. Deliberately NOT used by the keep-warm cron (that
+    /// hits /health only), so the DB is still free to auto-pause and preserve its quota.
+    /// </summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Get(CancellationToken ct)
+    {
+        var ready = await db.Users.AnyAsync(ct);
+        return Ok(new { ready });
     }
 }
 
