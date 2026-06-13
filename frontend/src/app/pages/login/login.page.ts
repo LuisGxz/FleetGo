@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonIcon, IonInput, IonSpinner } from '@ionic/angular/standalone';
@@ -6,6 +6,7 @@ import { addIcons } from 'ionicons';
 import { busOutline, mapOutline } from 'ionicons/icons';
 import { apiErrorMessages } from '../../core/api-error';
 import { AuthService } from '../../core/auth.service';
+import { API_BASE } from '../../core/config';
 import { LanguageService } from '../../core/language.service';
 import { UserDto } from '../../core/models';
 import { LangPillComponent } from '../../shared/lang-pill.component';
@@ -16,7 +17,7 @@ import { LangPillComponent } from '../../shared/lang-pill.component';
   styleUrl: './login.page.scss',
   imports: [FormsModule, RouterLink, IonContent, IonInput, IonButton, IonIcon, IonSpinner, LangPillComponent],
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly lang = inject(LanguageService);
@@ -29,6 +30,12 @@ export class LoginPage {
 
   constructor() {
     addIcons({ busOutline, mapOutline });
+  }
+
+  ngOnInit(): void {
+    // Pre-warm the free-tier API while the visitor reads the page and types, so the
+    // container is (often) already up by the time they submit. Fire-and-forget.
+    fetch(`${API_BASE}/health`, { mode: 'no-cors' }).catch(() => undefined);
   }
 
   fill(email: string): void {
@@ -69,8 +76,9 @@ export class LoginPage {
    * real credential errors (400/401/423) surface immediately.
    */
   private async loginWithColdStartRetry(): Promise<UserDto> {
-    // SQL serverless can take ~60 s to resume — keep retrying through that window.
-    const COLD_START_ATTEMPTS = 9;
+    // Worst case is a fully-cold stack: container reload (~100 s) + serverless DB resume
+    // (~30-60 s). Keep retrying across that window so it never dead-ends on a false error.
+    const COLD_START_ATTEMPTS = 16;
     const RETRY_DELAY_MS = 8000;
     for (let attempt = 1; ; attempt++) {
       try {
